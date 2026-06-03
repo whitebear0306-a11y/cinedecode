@@ -11,9 +11,10 @@ st.title("🎬 중국 영화 거장 '숨은 명작' 추천 서비스")
 st.write("크롤링한 전체 감독 리스트에서 대표작을 제외한 숨은 명작을 찾아줍니다.")
 st.write("---")
 
-# 1. 바탕화면에 있는 CSV 파일 읽어오기
+# 1. 파일 읽어오기 (완벽하게 정렬된 부분)
 csv_path = "directors.csv"
 
+if not os.path.exists(csv_path):
     st.error(f"⚠️ 지정된 경로에 파일이 없습니다! 경로를 확인해 주세요: {csv_path}")
 else:
     # CSV 파일 읽기 (한글 깨짐 방지를 위해 인코딩 설정)
@@ -68,28 +69,3 @@ else:
                                 "vote_count": vote_count,
                                 "date": release_date[:4] if release_date else "미상",
                                 "poster": f"https://image.tmdb.org/t/p/w200{poster_path}" if poster_path else None,
-                                "overview": overview
-                            })
-                
-                # 평점 순 정렬
-                hidden_gems = sorted(hidden_gems, key=lambda x: x['rating'], reverse=True)
-                
-                st.write("### 💎 분석 결과: 이런 숨은 명작은 어떠세요?")
-                
-                if not hidden_gems:
-                    st.info("조건에 맞는 숨은 명작을 찾지 못했습니다. (투표수가 너무 적거나 데이터가 부족합니다.)")
-                else:
-                    for i, gem in enumerate(hidden_gems[:3]):
-                        st.write(f"---")
-                        col1, col2 = st.columns([1, 3])
-                        
-                        with col1:
-                            if gem['poster']:
-                                st.image(gem['poster'])
-                            else:
-                                st.write("🎬 포스터 없음")
-                                
-                        with col2:
-                            st.markdown(f"#### {i+1}. {gem['title']} ({gem['date']})")
-                            st.markdown(f"**⭐ TMDB 평점:** {gem['rating']:.1f} / 10점 (투표 {gem['vote_count']}명)")
-                            st.write(f"**줄거리:** {gem['overview']}")
