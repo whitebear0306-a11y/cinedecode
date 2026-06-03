@@ -11,7 +11,7 @@ st.title("🎬 중국 영화 거장 '숨은 명작' 추천 서비스")
 st.write("크롤링한 전체 감독 리스트에서 대표작을 제외한 숨은 명작을 찾아줍니다.")
 st.write("---")
 
-# 1. 파일 읽어오기 (완벽하게 정렬된 부분)
+# 1. 파일 읽어오기
 csv_path = "directors.csv"
 
 if not os.path.exists(csv_path):
@@ -23,19 +23,16 @@ else:
     except UnicodeDecodeError:
         df = pd.read_csv(csv_path, encoding='cp949')
 
-    # 2. 감독 선택창 만들기 (크롤링한 모든 감독이 가나다순으로 등장합니다)
-    df = df.dropna(subset=['한국어발음', 'TMDB_ID']) # 빈 데이터 제거
+    # 2. 감독 선택창 만들기
+    df = df.dropna(subset=['한국어발음', 'TMDB_ID'])
     director_list = sorted(df['한국어발음'].unique())
     selected_director = st.selectbox("분석할 감독을 선택하세요:", director_list)
 
     if selected_director:
-        # 선택된 감독의 상세 정보 가져오기
         director_info = df[df['한국어발음'] == selected_director].iloc[0]
-        
         director_id = int(director_info['TMDB_ID'])
         generation = director_info['세대']
         
-        # 대표작 3편 텍스트 정제
         raw_known = str(director_info['대표작3편'])
         known_movies = [m.strip() for m in raw_known.replace('；', ';').replace(',', ';').replace('?', ';').split(';') if m.strip()]
         
@@ -61,11 +58,34 @@ else:
                         poster_path = movie.get('poster_path')
                         overview = movie.get('overview', '등록된 줄거리가 없습니다.')
                         
-                        # 내 크롤링 데이터의 대표작 목록에 없는 영화 + 투표수 3개 이상 필터링 (초기 데이터 확보용)
                         if title not in known_movies and vote_count >= 3:
+                            # 괄호와 콤마 줄 바꿈을 직관적으로 정렬했습니다.
                             hidden_gems.append({
                                 "title": title,
                                 "rating": rating,
                                 "vote_count": vote_count,
                                 "date": release_date[:4] if release_date else "미상",
                                 "poster": f"https://image.tmdb.org/t/p/w200{poster_path}" if poster_path else None,
+                                "overview": overview
+                            })
+                
+                hidden_gems = sorted(hidden_gems, key=lambda x: x['rating'], reverse=True)
+                st.write("### 💎 분석 결과: 이런 숨은 명작은 어떠세요?")
+                
+                if not hidden_gems:
+                    st.info("조건에 맞는 숨은 명작을 찾지 못했습니다.")
+                else:
+                    for i, gem in enumerate(hidden_gems[:3]):
+                        st.write(f"---")
+                        col1, col2 = st.columns([1, 3])
+                        
+                        with col1:
+                            if gem['poster']:
+                                st.image(gem['poster'])
+                            else:
+                                st.write("🎬 포스터 없음")
+                                
+                        with col2:
+                            st.markdown(f"#### {i+1}. {gem['title']} ({gem['date']})")
+                            st.markdown(f"**⭐ TMDB 평점:** {gem['rating']:.1f} / 10점 (투표 {gem['vote_count']}명)")
+                            st.write(f"**줄거리:** {gem['overview']}")
