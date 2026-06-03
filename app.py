@@ -12,9 +12,8 @@ st.write("크롤링한 전체 감독 리스트에서 대표작을 제외한 숨�
 st.write("---")
 
 # 1. 바탕화면에 있는 CSV 파일 읽어오기
-csv_path = r"C:\Users\white\Desktop\directors.csv.csv"
+csv_path = "directors.csv"
 
-if not os.path.exists(csv_path):
     st.error(f"⚠️ 지정된 경로에 파일이 없습니다! 경로를 확인해 주세요: {csv_path}")
 else:
     # CSV 파일 읽기 (한글 깨짐 방지를 위해 인코딩 설정)
